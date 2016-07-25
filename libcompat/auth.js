@@ -21,56 +21,59 @@
  */
 
 define([
+    '../lib/genetic/genetic',
     '../lib/common',
-    './session',
-    './token-manager'
+    '../lib/controller',
+    '../lib/AbstractCredentialProvider'
 ],  function (
+    genetic,
     common,
-    session,
-    tokenManager
+    controller,
+    AbstractCredentialProvider
 ) {
     'use strict';
     var logger = common.logger.child('auth');
     var AuthApi = common.api.AuthApi;
     var authApi = new AuthApi();
 
-    // initAuth is called by app.js at first, before loading any other plugins
-    function initAuth(clientId, redirectUrl, tokenGenerator, callback) {
-        var masterToken = common.masterToken;
+    function SimpleCredentialProvider() {
+        AbstractCredentialProvider.call(this);
+    }
 
-        tokenManager.on('lost', function(error) {
-            alert('TOKEN LOST. LOGIN AGAIN \n ' + error.toString() );
-        });
-        tokenManager.on('updated', function(token) {
-            logger.debug('updated token', token);
-        });
-
-        logger.debug('initAuth starts');
-
-        if (!masterToken) {
-            throw new Error('in-app login is not implemented yet');
+    genetic.inherits(SimpleCredentialProvider, AbstractCredentialProvider, {
+        getUserCredentialAsync : function getUserCredentialAsync() {
+            var ret = {};
+            ret.loginId = window.prompt('input login id');
+            ret.loginPassword = window.prompt('input login password');
+            return Promise.resolve(ret);
         }
+    });
 
-        authApi.login( {
-            loginId:'bogus',
-            loginPassword:'bogus',
-            masterToken: masterToken
-        }, function(err, data) {
-            if (err) {
-                // given callback is NOT a  error-first-callback function
-                logger.error('auth error', err);
-                throw(err);
-            }
-            tokenManager.updateAccessToken(data);
-            session.connect();
-            // Oddly, there's no error-fist-callback for initAuth
-            logger.debug('initAuth registered access token', data);
-            try {
-                callback(data.sessionId);
-            } catch (e) {
-                logger.error('initAuth callback had error', e);
-            }
-        });
+    var simpleCredentialProvider = new SimpleCredentialProvider();
+
+    // initAuth is called by app.js at first, before loading any other plugins
+    // so, compatible auth should control init/start procedures
+    // and, finally, callback( sessionId ) should be called
+    // oddly, legacy initAuth cannot pass error to callback.
+    function initAuth(clientId, redirectUrl, tokenGenerator, callback) {
+        Promise.resolve(controller.init(simpleCredentialProvider))
+            .then(function () {
+                return controller.start()
+            })
+            .then(function () {
+                // now all services are started.
+                // note that access token is available from common, too.
+                logger.debug('initAuth complete, invoking callback with session id');
+                return callback(common.accessToken.sessionId);
+                // if callback throws some error
+                // then following catch shold handle the error.
+            })
+            .catch(function (err) {
+                logger.error('initAuth met error', err);
+                // we cannot invoke callback with error
+                // so, we have to do something disruptive!
+                alert('This app client cannot start\n' + err.message || err);
+            });
     }
 
     function getMyInfo(callback) {

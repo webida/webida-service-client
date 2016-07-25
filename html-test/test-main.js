@@ -1,41 +1,36 @@
 define(['./webida-service-client-bundle'], function (webida) {
     'use strict';
-/*
-    Logger.config.defaultLogLevel = Logger.LEVEL.ALL;
 
-    var logger = new Logger('test-main');
-    logger.debug('debug debug');
+    var ACP = webida.AbstractCredentialProvider;
 
-    var testLog = function() {
-        logger.debug('test log');
-    };
-
-    function MyClass() {
-        this.logger = logger.child('MyClass');
-        this.logger.info('hey!');
-        this.instanceMethod = function instanceMethod() {
-            this.logger.info('boooo! ');
-        };
+    function SimpleCredentialProvider() {
+        ACP.call(this);
     }
 
-    MyClass.prototype = {
-        myMethod: function() {
-            this.logger.info('ho!');
+    SimpleCredentialProvider.prototype = Object.create(ACP.prototype)
+    SimpleCredentialProvider.prototype.constructor = SimpleCredentialProvider;
+    SimpleCredentialProvider.prototype.getUserCredentialAsync = function(err) {
+        if(err) {
+            alert('prev auth error = ' + err);
         }
+        var ret = { };
+        ret.loginId = window.prompt('input login id');
+        ret.loginPassword = window.prompt('input login password');
+        return Promise.resolve(ret);
     };
 
-    MyClass.staticMethod = function staticMethod() {
-        logger.debug('static static');
+    var bootArgs = {
+        serverUrl:'http://localhost:3355',
+        workspaceId:'4effdd36-695b-4f26-a99c-95394dd182be'
     };
+    //
+    // webida.init( new SimpleCredentialProvider(), bootArgs);
+    // webida.start().then( function() {
+    //     console.log('start done');
+    // });
 
-    var z = MyClass;
-    var obj = new MyClass();
-    obj.myMethod();
-
-    var obj2 = new z();
-    obj2.instanceMethod();
-    MyClass.staticMethod();
-    testLog(); */ 
-    webida.common.logger.debug('webida', webida); 
+    webida.auth.initAuth(null, null, null, function() {
+        console.log('initAuth callback', arguments);
+    })
 
 });

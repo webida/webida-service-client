@@ -11,13 +11,10 @@ module.exports = {
             path.join(__dirname, 'node_modules', 'webida-restful-api', 'src')
         ],
         alias: {
-            // for browser target(web), bundling superagent.js from node_modules
-            //  does not work, with many errors. As a workaround, we use pre-built one.
+            // for browser target(web), some js modules from node_modules
+            //  does not work, with many errors. As a workaround, we use pre-built js files.
             'superagent': 'superagent/superagent.js',
-
-            // we've not tested other event emitters.
-            // event-emitter looks fine but may have some problems with Object.freeze()
-            // 'eventEmitter': 'wolfy87-eventemitter'
+            'socket.io-client' : 'socket.io-client/socket.io.js'
         }
     },
 
@@ -29,11 +26,12 @@ module.exports = {
         filename: 'webida-service-client-bundle.js'
     },
 
-    devtool:'@source-map',
+    devtool:'source-map',
 
     module: {
         noParse: [
-            /superagent\.js$/
+            /superagent\.js$/,
+            /socket\.io\.js$/
         ]
     }, 
 
