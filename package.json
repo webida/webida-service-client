@@ -1,12 +1,12 @@
 {
   "name": "webida-service-client",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "readme": "README.md",
   "dependencies": {
     "eventemitter3": "^1.2.0",
-    "lodash": "^4.13.1",
+    "lodash": "^4.14.0",
     "socket.io-client": "^1.4.8",
     "urijs": "^1.18.1",
-    "webida-restful-api": "^0.7.0"
+    "webida-restful-api": "^0.7.1"
   }
 }

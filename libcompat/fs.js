@@ -21,9 +21,11 @@
  */
 
 define([
-    '../lib/workspace-service'
+    '../lib/workspace-service',
+    './CompatibleMount'
 ], function (
-    workspaceService
+    workspaceService,
+    CompatibleMount
 ) {
     'use strict';
 

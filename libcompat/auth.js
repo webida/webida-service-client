@@ -24,11 +24,13 @@ define([
     '../lib/genetic/genetic',
     '../lib/common',
     '../lib/controller',
+    '../lib/auth-service',
     '../lib/AbstractCredentialProvider'
 ],  function (
     genetic,
     common,
     controller,
+    authService,
     AbstractCredentialProvider
 ) {
     'use strict';
@@ -64,7 +66,8 @@ define([
                 // now all services are started.
                 // note that access token is available from common, too.
                 logger.debug('initAuth complete, invoking callback with session id');
-                return callback(common.accessToken.sessionId);
+                var tokenManager = authService.getTokenManager();
+                return callback(tokenManager.sessionId);
                 // if callback throws some error
                 // then following catch shold handle the error.
             })

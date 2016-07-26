@@ -140,9 +140,9 @@ define([
         auth : auth,
         fs : fs,
         conf : {
-            fsServer : common.serverUrl,
-            connServer: common.serverUrl,
-            fsApiBaseUrl: common.serverUrl + '/api/wfs'
+            get fsServer() { return common.serverUrl; },
+            get connServer() { return common.serverUrl; },
+            get fsApiBaseUrl() { return common.serverUrl + '/wfs'; }
         },
         getPluginSettingsPath : function(callback) {
             // plugin-settings-desktop.json : to use embedded server from desktop
