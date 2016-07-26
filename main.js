@@ -26,19 +26,21 @@
 define([
     './lib/common',
     './lib/controller',
-    './lib/AbstractCredentialProvider',
     './lib/auth-service',
     './lib/session-service',
     './lib/workspace-service',
+    './lib/AbstractCredentialProvider',
+    './lib/logger/Logger',
     './libcompat/auth',
     './libcompat/fs'
 ],  function (
     common,
     controller,
-    AbstractCredentialProvider,
     authService,
     sessionService,
     workspaceService,
+    AbstractCredentialProvider,
+    Logger,
     auth,
     fs
 ) {
@@ -47,10 +49,13 @@ define([
     var credentialProvider = null;
 
     var mod = {
-        VERSION: '0.7',
-
         // incompatible properties, which webida-0.3.js does not have
         //  provides some common, token & session information
+        VERSION: '0.7',
+
+        // accessor to all api classes
+        api : common.api,
+
         info : {
             get serverUrl() {
                 return common.serverUrl;
@@ -70,71 +75,13 @@ define([
             }
         },
 
-        lifecycleEventSource: controller.getLifecycleEventSource(),
-
-        // dashboard requires way to create some master token when staring new ide.
-        // so, auth service should be exposed.
-        // ide will not call auth service directly, ususally
-
+        controller: controller,
         authService : authService,
         sessionService : sessionService,
-
-        // dashboard does not use workspace service.
-        // so, wss should support starting without specific workspace id
         workspaceService: workspaceService,
 
         AbstractCredentialProvider: AbstractCredentialProvider,
-        // life-cycle control methods
-
-        // init service
-        //  - sets credential factory to right place
-        //  - parses boot arguments
-        //  - should be called once and only once, when app is booting
-        init : function init(credentialProvider, bootArgs) {
-            return controller.init(credentialProvider, bootArgs);
-        },
-
-        // start service
-        //  - do authentication
-        //  - establish session connection
-        //  - gets workspace information & mount file system
-        //   (workspace service should handle off-line cache init)
-        start : function start() {
-            return controller.start();
-        },
-
-        // stop service
-        //  - cancels all downloading/uploading jobs of off-line cache
-        //  - cancels all background processes in server, launched by this session
-        //  - close all web socket connections
-        //  - unmount file system if needed
-        //  - discard access token & stop auto-refreshing
-        stop : function stop() {
-            return controller.stop();
-        },
-
-        // Restart service needs new 'arguments', different from window.location
-        //  - server url, remote flag, workspace id, master token for the workspace
-        // To make things simple, only workspace id & master token can be changed
-        //  - so, client cannot change server url while working. It's intended.
-        //  - who wants for clients send cross-origin requests?
-        // Real problem is master token, for dashboard ui usually starts client with restricted
-        //   master token that cannot be used for new workspace.
-        // So, actual problem is simple - How can we get 'new' master token?
-        //   if dashboard/main tab/window is alive, then it manages unrestricted access token with
-        //   its own token manager. restricted master token can be generated from it.
-        //   if it's gone, nobody holds unrestricted token to access server.
-        // Using RemoteAccess in local server is not suitable, for the client has no local
-        //   server url when it accesses to remote server.
-        // Our solution is simple
-        //   if current access token is still valid (not stopped yet)
-        //   it's possible to make master token from it, even it's restricted.
-        //   (after creating master token, server should decline to refresh the access token)
-        //   so, creating new master token is not a hard job, if server helps.
-
-        restart: function restart(newWorkspaceId) {
-            return controller.restart(newWorkspaceId);
-        },
+        Logger: Logger,
 
         // for compatibility with plugin who are dependent to webida-0.3.js conf object
         auth : auth,
@@ -149,8 +96,7 @@ define([
             // plugin-settings.json : to use legacy server from desktop/browser (0.1)
             //                        to connect remote server from desktop/browser (0.2~)
             // plugin-settings-legacy: to connect legacy server from desktop/browser (0.2~)
-
-            if(common.bootArgs.legacy) {
+            if( window.location.href.indexOf('legacy=') > 0 ) {
                 return callback('plugins/plugin-setting.json');
             } else {
                 return callback('plugins/plugin-settings-desktop.json');

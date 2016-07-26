@@ -35,8 +35,8 @@ define([
 ) {
     'use strict';
     var logger = common.logger.child('auth');
-    var AuthApi = common.api.AuthApi;
-    var authApi = new AuthApi();
+    var authApi = new common.api.AuthApi();
+    var tokenManager = authService.getTokenManager();
 
     function SimpleCredentialProvider() {
         AbstractCredentialProvider.call(this);
@@ -66,7 +66,6 @@ define([
                 // now all services are started.
                 // note that access token is available from common, too.
                 logger.debug('initAuth complete, invoking callback with session id');
-                var tokenManager = authService.getTokenManager();
                 return callback(tokenManager.sessionId);
                 // if callback throws some error
                 // then following catch shold handle the error.
@@ -97,7 +96,7 @@ define([
         
         // for compatiblity with legacies
         getTokenObj : function getTokenObj() {
-            var token = common.accessToken;
+            var token = tokenManager.accessToken;
             if (token) {
                 return {
                     issueTime : token.issuedAt,
@@ -107,14 +106,14 @@ define([
         },
 
         getToken : function getToken() {
-            var token = common.accessToken;
+            var token = tokenManager.accessToken;
             if (token) {
                 return token.text;
             }
         },
 
         getSessionID : function getSessionID() {
-            var token = common.accessToken;
+            var token = tokenManager.accessToken;
             if (token) {
                 return token.sessionId;
             }

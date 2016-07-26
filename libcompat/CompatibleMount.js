@@ -37,7 +37,7 @@ define([
     
     var logger = common.logger.child('CompatibleMount');
     var abstractify = wfsUtils.abstractify;
-    var workspaceApi = common.api.WorkspaceApi;
+    var workspaceApi = new common.api.WorkspaceApi();
 
     function CompatibleMount(wfsMount) {
         this.wfsMount = wfsMount;
@@ -142,12 +142,12 @@ define([
                 info.cmd = 'git';
             }
             try {
-                workspaceApi.exec({
-                        command : info.cmd,
-                        args: info.args,
-                        cwd: wfsUtis.normalizePath(path) // input, timeout will use default value
-                    },
-                    false,  // legacy api does not support async exec
+                var execRequest = {
+                    command : info.cmd,
+                    args: info.args,
+                    cwd: wfsUtils.normalizePath(path) // input, timeout will use default value
+                };
+                workspaceApi.execute(this.wfsMount.wfsId, execRequest, {  },
                     function(err, result) {
                         var stdout, stderr, error;
                         if (typeof result === 'object') {

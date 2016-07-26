@@ -25,8 +25,8 @@ define(['./webida-service-client-bundle'], function (webida) {
     };
 
 
-    webida.init( new TestLoginProvider(), bootArgs);
-    webida.start().then( function() {
+    webida.controller.init( new TestLoginProvider(), bootArgs);
+    webida.controller.start().then( function() {
         console.log('start done');
         var mount = webida.workspaceService.getFileSystemMount();
         mount.readFile('webida-desktop/README.md', 'text', function(err, text) {
