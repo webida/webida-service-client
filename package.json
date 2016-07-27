@@ -1,6 +1,6 @@
 {
   "name": "webida-service-client",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "readme": "README.md",
   "dependencies": {
     "eventemitter3": "^1.2.0",
