@@ -96,7 +96,7 @@ define([
             return this.wfsMount.readFile(path, responseType, callback);
         },
 
-        writeFile : function wfsWriteFile(path, data, callback) {
+        writeFile : function (path, data, callback) {
             return this.wfsMount.writeFile(path, data, callback);
         },
 
@@ -167,8 +167,48 @@ define([
                 myself._invokeCallback('exec', callback, e);
             }
         },
-        searchFiles: abstractify('searchFiles'),
-        replaceFiles: abstractify('replaceFiles'),
+
+
+        /**
+         * pattern : regex
+         * where : a wfs path
+         * options.wholeWord `\b${pattern}\b`
+         * options.includeFile
+         * options.excludeDir (higher proority than includeFile)
+         *
+         * New API does not support includeFile/excludeDir & wholeWord options
+         *  - fs-commands plugin uses include/exclude options but should be removed
+         *   in favor of new search-replace view. we'll not support the options
+         *
+         * New API callback returns a map from path to Match obj array, with line & text properties
+         * currently, plugin handles path without heading '/'. so, we don't have to wrap callback.
+         */
+        searchFiles: function (pattern, where, options, callback) {
+            try {
+                if (options.wholeWord) {
+                    pattern = '\\b' + pattern + '\\b';
+                }
+                return this.wfsMount.search([where], pattern, options, callback);
+            } catch(e) {
+                this._invokeCallback('searchFiles', callback, e);
+            }
+        },
+
+
+        /**
+         * all arguments are same to search except where, the array of paths.
+         * additional replacePattern is same to new replaceTo arg.
+         */
+        replaceFiles:function (pattern, replacePattern, where, options, callback) {
+            try {
+                if (options.wholeWord) {
+                    pattern = '\\b' + pattern + '\\b';
+                }
+                return this.wfsMount.replace(where, pattern, replacePattern, options, callback);
+            } catch(e) {
+                this._invokeCallback('searchFiles', callback, e);
+            }
+        },
         addAlias : abstractify('addAlias')
     };
 
